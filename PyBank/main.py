@@ -44,28 +44,29 @@ avgChange = 0
 with open(importPath, 'r') as importData:
     csvReader = csv.reader(importData, delimiter = ",")
     header = next(csvReader)    # Skip header row
+    
     priorRow = next(csvReader)  # Save and skip 1st csv row for changeList[]
     totalMonths += 1    # Count first row not included in "for" loop
-    maxVal = priorRow   # Set comparison arrays to 1st entry
+    
+    maxVal = priorRow   # Set max/min values arrays to 1st entry
     minVal = priorRow
 
     for row in csvReader:
         totalMonths += 1    # Find total months listed in csv
         netProfit += int(row[1])    # Calculate net profit/loss
         
-        # if (maxVal[1] < row[1]):
-        #     maxVal = row
-        # elif (minVal[1] > row[1]):
-        #     minVal = row
+        if (maxVal[1] < row[1]):
+            maxVal = row
+        elif (minVal[1] > row[1]):
+            minVal = row
 
         budgetChange = int(row[1]) - int(priorRow[1]) # Calculate current change
         changeList.append(budgetChange) # Appends differential to list
         priorRow = row  # Sets current row as "prior" for next iteration
 
-
-
-
-    avgChange = sum(changeList) # Using a "for" loop is OK here
+    avgChange = sum(changeList) # Using a "for" loop is OK here too
     avgChange /= (totalMonths - 1)  # avgChange /= len(changeList) is OK too
 
 print(f"Months: {totalMonths}, Profit/Loss: {netProfit}, Avg Change: {avgChange}")
+print(f"Greatest Increase in Profits: {minVal[0]} ({maxVal[1]})") 
+print(f"Greatest Decrease in Profits: {minVal[0]} ({minVal[1]})")
