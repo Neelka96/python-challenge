@@ -30,6 +30,11 @@
 # Greatest Decrease in Profits: Feb-14 ($-1825558)
 
 # -----------------------------------------------------
+# Test data for repeating max's and min's
+# Mar-17,878810
+# Apr-17,-946748
+# May-17,-910775
+# Jun-17,951227
 
 # Import Libraries
 import csv
@@ -42,14 +47,12 @@ def AnalyzeBudgetCSV(inStream):
     # Change & date list are connected via index
     changeList = [] # changeList will collect differentials between neighboring values
     dateList = []   # dateList will store the date the changeValue is subtracted from
-    maxVal = ['', 0]
-    minVal = ['', 0]
 
     # Open csv path var and begin reading
     # csv path set to var > open csv file under new alias > start reading under alias
     # path > open(path) = path.open() > readerVar = csv.Reader(path.open())
-    with open(inStream, 'r') as inData:
-        csvReader = csv.reader(inData, delimiter = ",")     # Create reading object for csv
+    with open(inStream, 'r') as inFile:
+        csvReader = csv.reader(inFile, delimiter = ",")     # Create reading object for csv
         header = next(csvReader)    # Skip header row
         priorRow = next(csvReader)  # Save and skip 1st csv row for changeList[]
         priorRow[1] = int(priorRow[1])  # Recast for permanent int usage
@@ -57,77 +60,81 @@ def AnalyzeBudgetCSV(inStream):
         netProfit += priorRow[1]    # Add current value into summed profit/losses
         totalMonths += 1    # Count first row not included in "for" loop
         
+        # Creating the List of budget changes (very important list)
         for row in csvReader:
             row[1] = int(row[1])   # Recasting for permanent int usage
             netProfit += row[1]    # Calculate net profit/loss
             totalMonths += 1    # Find total months listed in csv
-            
-            budgetChg = row[1] - priorRow[1] # Calc Current Change
-            changeList.append(budgetChg) # Appends differential to list
-            dateList.append(row[0]) # Appends current date to change list
 
-            if maxVal[1] < budgetChg:       # Checks if current chg > than max chg
-                maxVal[0] = row[0]      # If so -> Set maxVal list to budget chg & date
-                maxVal[1] = budgetChg
-                if len(maxVal) > 2:     # If replacing maxVal delete other values
-                    del maxVal[2:]
-            elif maxVal[1] == budgetChg:    # Checks if current chg = max chg
-                maxVal.append(row[0])   # If so -> Add to list (can be deleted later)
-                maxVal.append(budgetChg)
-            
-            if minVal[1] > budgetChg:    # Checks if current chg < then min chg
-                minVal[0] = row[0]      # If so -> Set minVal list to budget chg & date
-                minVal[1] = budgetChg
-                if len(minVal) > 2:     # If replacing minVal delete other values
-                    del minVal[2:]
-            elif minVal[1] == budgetChg:    # Checks if current chg = max chg  
-                minVal.append(row[0])   # If so -> Add to list (can be deleted later)
-                minVal.append(budgetChg)            
-            priorRow = row  # Sets current row as "prior" for next iteration
-        
+            budgetChg = row[1] - priorRow[1] # Calc Current Change
+            priorRow = row  # Reset priorRow to the current row iteration for next loop
+            dateList.append(row[0]) # Appends current date to change list
+            changeList.append(budgetChg) # Appends differential to list
+
         avgChg = format(sum(changeList)/len(changeList), ".2f")
-        # zipChanges = zip(dateList, changeList) --> Creates 1 zip object to hold both dates and changes (not exported)
+        # Calls functions defined in this .py file made to ensure there are not multiple extremeties
+        maxVal = MultipleExtremes(dateList, changeList, "max")    # Checks if there are multiple greatest increases
+        minVal = MultipleExtremes(dateList, changeList, "min")    # Checks if there are multiple greatest decreases
     return totalMonths, netProfit, avgChg, maxVal, minVal
 
+# Function to format output for both terminal and for saving to a file
+# Method is to continuously concatanate str var that will be returned
 def FormatOutput(months, profits, average, maximum, minimum):
-    # Printing statements w/ desired terminal output formatting
     outString = "Financial Analysis\n"
     outString += f"{'-' * 25}\n"
     outString += f"Total Months: {months}\n"
     outString += f"Total: ${profits}\n"
     outString += f"Average Change: ${average}\n"
-
     if len(maximum) == 2:
         outString += f"Greatest Increase in Profits: {maximum[0]} (${maximum[1]})\n"
     else:   # Accounting for maxVal list greater than length 2
         for n in range(int(len(maximum) / 2)):
             outString += f"Greatest Increase in Profits: {maximum[n*2]} (${maximum[(n*2)+1]})\n"
-
     if len(minimum) == 2:
         outString += f"Greatest Decrease in Profits: {minimum[0]} (${minimum[1]})\n"
     else:   # Accounting for minVal list greater than length 2
         for n in range(int(len(minimum) / 2)):
             outString += f"Greatest Decrease in Profits: {minimum[n*2]} (${minimum[(n*2)+1]})\n"
-
+    
     return outString
 
-def SaveOutput(outStream, saveContent):
-    # Output method - writing formatted analysis to .txt file
-    # Does it need to be in csv formatting or in the same format as analysis?
+# Function to export/save formatted output to a .txt file, path > PyBank/analysis/budget_analysis.txt
+def SaveOutput(saveContent, outStream):
     with open(outStream, 'w') as outData:
         outData.write(saveContent)
     return None     # Personal preference to return void/null for no actual return value
 
+# Args: <list of strings>, <list of integers>, <string>
+def MultipleExtremes(dates, values, max_or_min):
+    trueExtreme = None  # Not needed init of trueExtreme (if...else block doesn't prevent global inits)
+    if max_or_min == "max":     # Finding max or min (function will be called once for each)
+        trueExtreme = max(values)
+    elif max_or_min == "min":
+        trueExtreme = min(values)
+    else:
+        quit(f"Source code: <max_or_min> arg '{max_or_min}' not valid")
+    # Building list of other potential indeces where extremes were found
+    # Using enumerate() to create list of indeces alongside each value - links to dates
+    otherExtremes = [index for index, extreme in enumerate(values) if extreme == trueExtreme]
+    # Create list built for output in the format the other modules are expecting
+    # [date, value] or if multiple values [date, value, date, value, etc...]
+    outputExtremes = []
+    for index in otherExtremes:
+        outputExtremes.append(dates[index])
+        outputExtremes.append(trueExtreme)
+    return outputExtremes
 
-
-# This is where the code executes and calls functions
-if __name__ == "__main__":      # __name__ is always set to __main__ when executed. 
+def main():
     inPath = os.path.join("Resources", "budget_data.csv")
     outPath = os.path.join("analysis", "budget_analysis.txt")
     
+    # Calling built functions in module form allows for psuedocode-esque reading of purpose
     budgetSummary = AnalyzeBudgetCSV(inPath)
     formatSummary = FormatOutput(*budgetSummary)    # * Unpacks returned tupple into arguments for FormatOutput
-    
     print(f"\n{formatSummary}")
+    SaveOutput(formatSummary, outPath)
 
-    SaveOutput(outPath, formatSummary)
+# This is where the code executes and calls functions
+# Callback to c++ :)
+if __name__ == "__main__":      # __name__ is always set to __main__ when executed. 
+    main()
