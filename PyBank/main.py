@@ -86,7 +86,8 @@ def AnalyzeBudgetCSV(inStream):
             priorRow = row  # Sets current row as "prior" for next iteration
         
         avgChg = format(sum(changeList)/len(changeList), ".2f")
-        return totalMonths, netProfit, avgChg, maxVal, minVal
+        # zipChanges = zip(dateList, changeList) --> Creates 1 zip object to hold both dates and changes (not exported)
+    return totalMonths, netProfit, avgChg, maxVal, minVal
 
 def FormatOutput(months, profits, average, maximum, minimum):
     # Printing statements w/ desired terminal output formatting
@@ -110,13 +111,12 @@ def FormatOutput(months, profits, average, maximum, minimum):
 
     return outString
 
-
 def SaveOutput(outStream, saveContent):
     # Output method - writing formatted analysis to .txt file
     # Does it need to be in csv formatting or in the same format as analysis?
     with open(outStream, 'w') as outData:
         outData.write(saveContent)
-    return None
+    return None     # Personal preference to return void/null for no actual return value
 
 
 
@@ -126,7 +126,8 @@ if __name__ == "__main__":      # __name__ is always set to __main__ when execut
     outPath = os.path.join("analysis", "budget_analysis.txt")
     
     budgetSummary = AnalyzeBudgetCSV(inPath)
-    formatSummary = FormatOutput(*budgetSummary)    # Unpacking returned results that were lists
-    print(formatSummary)
+    formatSummary = FormatOutput(*budgetSummary)    # * Unpacks returned tupple into arguments for FormatOutput
+    
+    print(f"\n{formatSummary}")
 
     SaveOutput(outPath, formatSummary)
