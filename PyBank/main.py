@@ -35,6 +35,7 @@
 import csv
 import os
 
+
 def AnalyzeBudgetCSV(inStream):
     totalMonths = 0
     netProfit = 0
@@ -73,7 +74,7 @@ def AnalyzeBudgetCSV(inStream):
             elif maxVal[1] == budgetChg:    # Checks if current chg = max chg
                 maxVal.append(row[0])   # If so -> Add to list (can be deleted later)
                 maxVal.append(budgetChg)
-
+            
             if minVal[1] > budgetChg:    # Checks if current chg < then min chg
                 minVal[0] = row[0]      # If so -> Set minVal list to budget chg & date
                 minVal[1] = budgetChg
@@ -81,12 +82,10 @@ def AnalyzeBudgetCSV(inStream):
                     del minVal[2:]
             elif minVal[1] == budgetChg:    # Checks if current chg = max chg  
                 minVal.append(row[0])   # If so -> Add to list (can be deleted later)
-                minVal.append(budgetChg)
-                
+                minVal.append(budgetChg)            
             priorRow = row  # Sets current row as "prior" for next iteration
-
+        
         avgChg = format(sum(changeList)/len(changeList), ".2f")
-
         return totalMonths, netProfit, avgChg, maxVal, minVal
 
 def FormatOutput(months, profits, average, maximum, minimum):
@@ -120,7 +119,9 @@ def SaveOutput(outStream, saveContent):
     return None
 
 
-if __name__ == "__main__":
+
+# This is where the code executes and calls functions
+if __name__ == "__main__":      # __name__ is always set to __main__ when executed. 
     inPath = os.path.join("Resources", "budget_data.csv")
     outPath = os.path.join("analysis", "budget_analysis.txt")
     
