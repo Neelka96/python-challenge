@@ -1,100 +1,86 @@
 # Neel Agarwal @Neelka96
 # Last Updated: 12.7.2024
 
-# PyPoll Instructions
-# In this Challenge, you are tasked with helping a small,
-# rural town modernize its vote-counting process.
+def AnalyzePollCSV(inStream):   # Args: <str>
+    # Reads in .csv file, counts total votes (rows)
+    # Creates dict. of "Candidate Name: Votes for that candidate
+    # Calls f(x) passing in votes & dict. --> returns mod'd dict. and winner(s) by popular vote
+    # Pass along total votes, new candidate dict., and winner(s) to next f(x)
+    votes = 0
+    candidates = {}
+    with open(inStream, "r") as inData:
+        csvReader = csv.reader(inData, delimiter = ',')
+        headers = next(csvReader)               # Read headers
+        for row in csvReader:
+            if row[2] not in candidates:        # If candidate name (key) doesn't exist, create it and set to 1
+                candidates[row[2]] = 1
+            else:
+                candidates[row[2]] += 1         # If candidate already exists, increment by 1
+            votes += 1                          # Incremement vote count with each row
+        # Retrieve modified version of candidate dictionary to pass to formatter and popular vote winner(s)
+        candidates, winner = Mod_Dict_Find_Winner(votes, candidates)
+    return votes, candidates, winner            # Output analysis summary values (votes, candidate dictionary)
 
-# You will be given a set of poll data called election_data.csv. 
-# The dataset is composed of three columns: "Voter ID", "County", and "Candidate". 
-# Your task is to create a Python script that analyzes the votes and calculates 
-# each of the following values:
-# -----------------------------
-# *The total number of votes cast       # == total rows in csv
-# *A complete list of candidates who received votes     # print list of vote choices
-# *The percentage of votes each candidate won
-# *The total number of votes each candidate won
-# *The winner of the election based on popular vote
-# *Your analysis should align with the following results:
+def Mod_Dict_Find_Winner(votes, candidates):    # Args: <int>, <dict obj>
+    # Uses loop to modify dictionary values to include % of votes, then find winner of election
+    # If there is a tie, append to winner list: [candidate, votes, candidate, votes, etc...]
+    winner = ["", 0]
+    for key in candidates:
+        # Convert candidate dictionary int value into list of [# votes, % of total vote]  
+        candidates[key] = [candidates[key], (candidates[key]/votes)*100]
+        if candidates[key][0] > winner[1]:      # Checks for greatest # votes
+            winner[0] = key
+            winner[1] = candidates[key][0]
+            if len(winner) > 2:                 # Deletes tied entries if new greatest # votes found
+                del winner[2:]
+        elif candidates[key][0] == winner[1]:   # Checks for ties
+            winner.append(key)
+            winner.append(candidates[key][0])
+    return candidates, winner                   # Returns mod'd dict. {"candidate": [vote, % total vote]}, and winner[]
 
-# Election Results
-# -------------------------
-# Total Votes: 369711
-# -------------------------
-# Charles Casper Stockham: 23.049% (85213)
-# Diana DeGette: 73.812% (272892)
-# Raymon Anthony Doane: 3.139% (11606)
-# -------------------------
-# Winner: Diana DeGette
-# -------------------------
-# Candidate dictionary = {"candidate": total votes}
-# Access candidate votes through "candidate" key
-# --> Candidate vote % = candidate votes / total votes (already tracked) 
-# 
-# OBJECTIVES:
-# (Import modules, init global vars, init lists/dicts)
-#   Needs to be able to open files for reading and writing ind. of OS (.path method)
-#   Reads CSV file row by row into iterator (with open() --> for loop)
-#       Track how many votes were cast --> Increment var w/ each row
-#       Create list of different candidates --> Use dict. ("key":value)
-#       Use the found key to increment value w/ each vote --> dict["key"] += 1
-#   store % of each candidate in new var for accessing later
-#   Compare percentages/vote count to find popular vote winner --> If...Else Statement 
-# Import necessary modules
-import csv
-import os
-# Set OS dependent paths for in/out files
-inPath = os.path.join("Resources", "election_data.csv")
-outPath = os.path.join("analysis", "election_analysis.txt")
-# GLOBAL VARIABLES:
-# -----------------
-totalVotes = 0
-candidates = {}
-# Open CSV for reading & fill in candidate dictionary
-with open(inPath, "r") as inData:
-    csvReader = csv.reader(inData, delimiter = ',')
-    headers = next(csvReader)   # Read headers
-    for row in csvReader:
-        if row[2] not in candidates:    # If candidate key doesn't exist, create it
-            candidates[row[2]] = 1
-        else:
-            candidates[row[2]] += 1     # If already exists, increment by 1
-        totalVotes += 1     # Incremement vote count with each row
-# FINDING WINNER:
-# Loop through dictionary and compare vals 
-# --> Replace lower vals w/ greater vals in list
-# Winner [# votes, candidate] saved, tied counts appended
-winner = [0, ""]
-for key in candidates:
-    # Convert candidate values to list of [# votes, % of total vote]  
-    candidates[key] = [candidates[key], (candidates[key]/totalVotes)*100]
+def FormatOutput(votes, candidates, winner):    # Args: <int>, <dict. obj.>, <list obj.>
+    # Combine all resultant output into continuously concatenating string variable
+    outString = "\nElection Results\n"
+    outString += f"{'-' * 25}\n"
+    outString += f"Total Votes: {votes}\n"
+    outString += f"{'-' * 25}\n"
+    for key in candidates:
+        outString += f"{key}: {(candidates[key][1]):.3f}% ({candidates[key][0]})\n"
+    outString += f"{'-' * 25}\n"
+    # Checks for multiple winner names then concatenates
+    if len(winner) == 2:
+        outString += f"Winner: {winner[0]}"
+    else:                   
+        outString += "* Winner is tied - Recount or repolling required! *\n"
+        outString += "Winners:"
+        for index in range(int(len(winner) / 2)):   # Prints any # of winners in correct format
+            if index < (len(winner) / 2) - 1:
+                outString += f" {winner[index*2]},"
+            else:
+                outString += f" {winner[index*2]}"
+    outString += f"\n{'-' * 25}\n"
+    return outString
 
-    if candidates[key][0] > winner[0]:     # Checks for greatest # votes
-        winner[0] = candidates[key][0]
-        winner[1] = key
-        if len(winner) > 2:     # Deletes tied entries if new greatest # votes found
-            del winner[2:]
-    elif candidates[key][0] == winner[0]:  # Checks for ties
-        winner.append(candidates[key][0])
-        winner.append(key)
+def SaveOutput(saveContent, outStream):         # Args: <str>, <str>
+    # Saving formatted string to path: /PyPoll/analysis/election_analysis.txt
+    with open(outStream, 'w') as outData:
+        outData.write(saveContent)
+    return None
 
-# Dictionary now looks like:
-#   candidates = {"candidate_name": [# votes, % of total vote]}
-# PRINTING BLOCK:
-# ---------------
-outString = "Election Results\n"
-outString += f"{'-' * 25}\n"
-outString += f"Total Votes: {totalVotes}\n"
-outString += f"{'-' * 25}\n"
 
-for key in candidates:
-    outString += f"{key}: {(candidates[key][1]):.3f}% ({candidates[key][0]})\n"
+def main():
+    # Main Body: Tasks can be read in pseudocode-esque view
+    # Set OS independent paths for in/out files
+    inPath = os.path.join("Resources", "election_data.csv")
+    outPath = os.path.join("analysis", "election_analysis.txt")
+    analysisData = AnalyzePollCSV(inPath)
+    formattedData = FormatOutput(*analysisData)
+    print(f"\n{formattedData}")
+    SaveOutput(formattedData, outPath)
+    return 0
 
-outString += f"{'-' * 25}\n"
-outString += f"Winner: {winner[1]}\n"
-outString += f"{'-' * 25}\n"
-
-print(outString)
-# FILE WRITING
-with open(outPath, 'w') as outData:
-    outData.write(outString)
+if __name__ == "__main__":
+    # Increasing modularity of main.py with cond'l
+    # Import dependent libraries only when main.py is executed
+    import os, csv      # Setting inside cond'l keeps libraries in global scope
+    main()              # Calling main() sets tasks in motion

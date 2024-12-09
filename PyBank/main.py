@@ -85,6 +85,7 @@ def main():
     formatSummary = FormatOutput(*budgetSummary)            # '*' Unpacks returned tuple as args for FormatOutput and saves formatting (tupleSize MUST == # of args)
     print(f"\n{formatSummary}")                             # Prints out summary w/ formatting --> Terminal
     SaveOutput(formatSummary, outPath)                      # Saves summary w/ formatting --> outPath/file.txt
+    return 0
 
 if __name__ == "__main__":
     # Proper modulation of main.py - won't execute even when imported, unless script specifically called
