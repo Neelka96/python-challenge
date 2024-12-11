@@ -1,5 +1,6 @@
 # Neel Agarwal @Neelka96
 # Last Updated: 12.7.2024
+# PyPoll main.py Script
 
 def AnalyzePollCSV(inStream):   # Args: <str>
     # Reads in .csv file, counts total votes (rows)
