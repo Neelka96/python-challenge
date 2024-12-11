@@ -121,6 +121,6 @@ execution of imported files, and is a useful habit to have in terms of overall s
 ### OpenAI ChatGPT
 ChatGPT was utilized in this assignment for help generating the framework for this README.md.  
 OpenAI's generativeAI was fed the rubric for this assignment to assist it in creating an accurate  
-structure. README.md at this time bears very little resemblence to original generated response.  
+structure. README.md at this time differs largely in resemblence to original generated response.  
 > OpenAI. (2024). ChatGPT (ChatGPT-4o) [Large language model]. https://chatgpt.com  
 
