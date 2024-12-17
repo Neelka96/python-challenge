@@ -23,6 +23,9 @@ def AnalyzePollCSV(inStream):   # Args: <str>
     return votes, candidates, winner            # Output analysis summary values (votes, candidate dictionary)
 
 def Mod_Dict_Find_Winner(votes, candidates):    # Args: <int>, <dict obj>
+    if ((votes == 0) or (not candidates)):      # !!!Data validation!!!
+        print("Error: Invalid data held in CSV file.")
+        return {}, ["No Winner", -1]
     # Uses loop to modify dictionary values to include % of votes, then find winner of election
     # If there is a tie, append to winner list: [candidate, votes, candidate, votes, etc...]
     winner = ["", 0]
@@ -30,13 +33,14 @@ def Mod_Dict_Find_Winner(votes, candidates):    # Args: <int>, <dict obj>
         # Convert candidate dictionary int value into list of [# votes, % of total vote]  
         candidates[key] = [candidates[key], (candidates[key]/votes)*100]
         if candidates[key][0] > winner[1]:      # Checks for greatest # votes
-            winner[0] = key
-            winner[1] = candidates[key][0]
+            winner = [key, candidates[key][0]]
             if len(winner) > 2:                 # Deletes tied entries if new greatest # votes found
                 del winner[2:]
         elif candidates[key][0] == winner[1]:   # Checks for ties
-            winner.append(key)
-            winner.append(candidates[key][0])
+            if winner[1] == 0:
+                winner = [key, candidates[key][0]]
+            else:
+                winner += [key, candidates[key][0]]
     return candidates, winner                   # Returns mod'd dict. {"candidate": [vote, % total vote]}, and winner[]
 
 def FormatOutput(votes, candidates, winner):    # Args: <int>, <dict. obj.>, <list obj.>
